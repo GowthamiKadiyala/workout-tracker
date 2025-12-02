@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model: The person using the app
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  
+  // FIX: This line was missing. A user has many workouts.
+  workouts  Workout[]
+  schedules Schedule[]
+}
+
+// Metric Model: Heart rate, steps, etc.
+model Metric {
+  id        Int      @id @default(autoincrement())
+  type      String   // e.g., "HEART_RATE"
+  value     Float
+  timestamp DateTime @default(now())
+}
+
+// Workout Model: A Workout Session (e.g., "Leg Day")
+model Workout {
+  id        String     @id @default(uuid())
+  userId    String
+  name      String
+  date      DateTime   @default(now())
+  exercises Exercise[] // A workout has many exercises
+  
+  user      User       @relation(fields: [userId], references: [id])
+}
+
+// Exercise Model: A Single Exercise (e.g., "Squats 3x10")
+model Exercise {
+  id        String   @id @default(uuid())
+  workoutId String
+  name      String
+  sets      Int
+  reps      Int
+  weight    Float
+  
+  workout   Workout  @relation(fields: [workoutId], references: [id])
+}
+
+model Schedule {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   // e.g. "Leg Day"
+  date      DateTime // When is it happening?
+  user      User     @relation(fields: [userId], references: [id])
+}
